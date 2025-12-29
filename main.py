@@ -22,11 +22,11 @@ def serialize_car_object(car: Car) -> bytes:
 
         # Ensure problem_description is None if it's None in model
         if car.problem_description is None:
-            car_dict['problem_description'] = None
+            car_dict["problem_description"] = None
 
         # Convert to JSON string and then to bytes
         json_str = json.dumps(car_dict, ensure_ascii=False)
-        json_bytes = json_str.encode('utf-8')
+        json_bytes = json_str.encode("utf-8")
 
         return json_bytes
 
@@ -44,14 +44,15 @@ def deserialize_car_object(json_bytes: bytes) -> Car:
     """
     try:
         # Decode bytes to string
-        json_str = json_bytes.decode('utf-8')
+        json_str = json_bytes.decode("utf-8")
 
         # Parse JSON data
         data = json.loads(json_str)
 
         # Handle null problem_description
-        if 'problem_description' in data and data['problem_description'] is None:
-            data['problem_description'] = None
+        if ("problem_description" in data
+                and data["problem_description"] is None):
+            data["problem_description"] = None
 
         # Create serializer with data
         serializer = CarSerializer(data=data)
@@ -66,16 +67,16 @@ def deserialize_car_object(json_bytes: bytes) -> Car:
                 car_instance.full_clean()
             except ValidationError as e:
                 raise serializers.ValidationError({
-                    'model_errors': e.message_dict,
-                    'message': 'Model validation failed'
+                    "model_errors": e.message_dict,
+                    "message": "Model validation failed"
                 })
 
             return car_instance
         else:
             # Raise error with validation details
             raise serializers.ValidationError({
-                'errors': serializer.errors,
-                'message': 'Invalid car data'
+                "errors": serializer.errors,
+                "message": "Invalid car data"
             })
 
     except UnicodeDecodeError as e:
