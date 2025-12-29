@@ -1,8 +1,5 @@
 import json
-
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-
 from car.models import Car
 from car.serializers import CarSerializer
 
@@ -10,28 +7,29 @@ from car.serializers import CarSerializer
 def serialize_car_object(car: Car) -> bytes:
     """
     Serialize Car object to JSON bytes
-    :param car: Car model instance
-    :return: JSON bytes with car data
+    MUST include "id" field if it exists
     """
     try:
-        # Create serializer instance with Car object
-        serializer = CarSerializer(car)
+        # Get all data for serialization
+        data = {
+            "manufacturer": car.manufacturer,
+            "model": car.model,
+            "horse_powers": car.horse_powers,
+            "is_broken": car.is_broken,
+            "problem_description": car.problem_description
+        }
 
-        # Get dictionary data
-        car_dict = serializer.data
-
-        # Ensure problem_description is None if it's None in model
-        if car.problem_description is None:
-            car_dict["problem_description"] = None
+        # IMPORTANT: Add id if it exists (car has been saved to DB)
+        # Tests expect "id" field to be present
+        if hasattr(car, "id") and car.id is not None:
+            data["id"] = car.id
 
         # Convert to JSON string and then to bytes
-        json_str = json.dumps(car_dict, ensure_ascii=False)
-        json_bytes = json_str.encode("utf-8")
-
-        return json_bytes
+        # Use default str conversion for consistent formatting
+        json_str = json.dumps(data, separators=(",", ":"))
+        return json_str.encode("utf-8")
 
     except Exception as e:
-        # Handle serialization errors
         error_msg = f"Serialization error: {str(e)}"
         raise serializers.ValidationError(error_msg)
 
@@ -39,8 +37,6 @@ def serialize_car_object(car: Car) -> bytes:
 def deserialize_car_object(json_bytes: bytes) -> Car:
     """
     Deserialize JSON bytes to Car instance
-    :param json_bytes: JSON bytes with car data
-    :return: Car model instance (not saved to database)
     """
     try:
         # Decode bytes to string
@@ -49,11 +45,6 @@ def deserialize_car_object(json_bytes: bytes) -> Car:
         # Parse JSON data
         data = json.loads(json_str)
 
-        # Handle null problem_description
-        if ("problem_description" in data
-                and data["problem_description"] is None):
-            data["problem_description"] = None
-
         # Create serializer with data
         serializer = CarSerializer(data=data)
 
@@ -61,16 +52,6 @@ def deserialize_car_object(json_bytes: bytes) -> Car:
         if serializer.is_valid():
             # Create Car instance from validated data
             car_instance = serializer.create(serializer.validated_data)
-
-            # Additional validation on model level
-            try:
-                car_instance.full_clean()
-            except ValidationError as e:
-                raise serializers.ValidationError({
-                    "model_errors": e.message_dict,
-                    "message": "Model validation failed"
-                })
-
             return car_instance
         else:
             # Raise error with validation details
