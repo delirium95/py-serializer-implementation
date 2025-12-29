@@ -44,7 +44,7 @@ def deserialize_car_object(json_bytes: bytes) -> Car:
 
         # Parse JSON data
         data = json.loads(json_str)
-
+        data.pop("id", None)
         # Create serializer with data
         serializer = CarSerializer(data=data)
 
