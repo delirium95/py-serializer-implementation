@@ -29,9 +29,15 @@ class CarSerializer(serializers.Serializer):
         """
         Update and return an existing Car instance
         """
-        instance.manufacturer = validated_data.get('manufacturer', instance.manufacturer)
-        instance.model = validated_data.get('model', instance.model)
-        instance.horse_powers = validated_data.get('horse_powers', instance.horse_powers)
-        instance.is_broken = validated_data.get('is_broken', instance.is_broken)
-        instance.problem_description = validated_data.get('problem_description', instance.problem_description)
+        instance.manufacturer = (validated_data.
+                                 get("manufacturer", instance.manufacturer))
+        instance.model = (validated_data.
+                          get("model", instance.model))
+        instance.horse_powers = (validated_data.
+                                 get("horse_powers", instance.horse_powers))
+        instance.is_broken = (validated_data.
+                              get("is_broken", instance.is_broken))
+        instance.problem_description = (validated_data.
+                                        get("problem_description",
+                                            instance.problem_description))
         return instance
